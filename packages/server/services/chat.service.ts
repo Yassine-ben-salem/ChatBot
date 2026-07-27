@@ -25,7 +25,7 @@ export const chatService = {
                 },
             ],
             temperature: 0.2,
-            max_tokens: 100,
+            max_tokens: 2048,
         }) as any;
 
         const assistantMessage = response.choices?.[0]?.message?.content ?? 'No content';
