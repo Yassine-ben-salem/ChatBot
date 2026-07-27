@@ -50,12 +50,20 @@ const ChatBot = () => {
       }
    };
 
+   const onCopyMessage = (e: React.ClipboardEvent<HTMLDivElement>) => {
+      const selection = window.getSelection()?.toString().trim();
+      if (selection) {
+         e.preventDefault();
+         e.clipboardData.setData('text/plain', selection);
+      }
+   };
    return (
       <div className="flex h-[calc(100vh-2rem)] flex-col">
          <div className="flex-1 flex flex-col gap-2 mb-4 overflow-y-auto no-scrollbar">
             {messages.map((message, index) => (
                <div
                   key={index}
+                  onCopy={onCopyMessage}
                   className={`px-3 py-1 rounded-xl whitespace-pre-wrap wrap-break-word ${
                      message.role === 'user'
                         ? 'bg-blue-600 text-white self-end'
