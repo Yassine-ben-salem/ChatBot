@@ -21,8 +21,8 @@ type Message = {
 const ChatBot = () => {
    const [messages, setMessages] = useState<Message[]>([]);
    const [isBotTyping, setIsBotTyping] = useState(false);
-   const conversationId = useRef(crypto.randomUUID());
    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+   const conversationId = useRef(crypto.randomUUID());
    const { register, handleSubmit, reset, formState } = useForm<FormData>();
 
    useEffect(() => {
@@ -54,16 +54,16 @@ const ChatBot = () => {
       <div className="flex h-[calc(100vh-2rem)] flex-col">
          <div className="flex-1 flex flex-col gap-2 mb-4 overflow-y-auto no-scrollbar">
             {messages.map((message, index) => (
-               <p
+               <div
                   key={index}
-                  className={`px-3 py-1 rounded-xl ${
+                  className={`px-3 py-1 rounded-xl whitespace-pre-wrap wrap-break-word ${
                      message.role === 'user'
                         ? 'bg-blue-600 text-white self-end'
-                        : 'bg-gray-100 textt-black self-start'
+                        : 'bg-gray-100 text-black self-start'
                   }`}
                >
                   <ReactMarkdown>{message.content}</ReactMarkdown>
-               </p>
+               </div>
             ))}
             {isBotTyping && (
                <div className="flex gap-1 px-3 py-3 rounded-xl bg-gray-200 self-start">
@@ -72,6 +72,7 @@ const ChatBot = () => {
                   <div className="w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.4s]"></div>
                </div>
             )}
+            <div ref={messagesEndRef} />
          </div>
          <form
             onSubmit={handleSubmit(onSubmit)}
