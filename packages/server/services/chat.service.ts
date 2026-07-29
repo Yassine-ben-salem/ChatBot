@@ -16,7 +16,7 @@ export const chatService = {
         const history = conversationRepository.getMessages(conversationId);
 
         const response = await client.chat.completions.create({
-            model: 'openai/gpt-4o-mini',
+            model: 'openai/gpt-5.4-mini',
             messages: [
                 ...history,
                 {
