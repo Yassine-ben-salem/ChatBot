@@ -5,13 +5,14 @@ import { chatController } from './controllers/chat.controller';
 const router = express.Router();
 
 router.get('/', (req: Request, res: Response) => {
-    res.send('Hello, World!');
+   res.send('Hello, World!');
 });
 
 router.get('/api/hello', (req: Request, res: Response) => {
-    res.json({ message: 'Hello, World!' });
+   res.json({ message: 'Hello, World!' });
 });
 
-router.post('/api/chat', chatController.sendMessage); 
+router.post('/api/chat', chatController.sendMessage);
+router.post('/api/chat/stream', chatController.streamMessage);
 
 export default router;

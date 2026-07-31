@@ -1,5 +1,5 @@
-import { Button } from '@base-ui/react/button';
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, MouseEvent } from 'react';
+import { Button } from '../ui/button';
 import { useForm } from 'react-hook-form';
 import { FaArrowUp } from 'react-icons/fa';
 
@@ -9,14 +9,17 @@ export type ChatFormData = {
 
 type Props = {
    onSubmit: (data: ChatFormData) => void;
+   disabled?: boolean;
 };
 
-const ChatInput = ({ onSubmit }: Props) => {
-   const { register, handleSubmit, reset, formState } = useForm<ChatFormData>({
-      defaultValues: { prompt: '' },
-   });
+const ChatInput = ({ onSubmit, disabled = false }: Props) => {
+   const { register, handleSubmit, reset, formState, setFocus } =
+      useForm<ChatFormData>({
+         defaultValues: { prompt: '' },
+      });
 
    const submit = handleSubmit((data) => {
+      if (disabled) return;
       reset({ prompt: '' });
       onSubmit(data);
    });
@@ -24,15 +27,23 @@ const ChatInput = ({ onSubmit }: Props) => {
    const handleKeyDown = (e: KeyboardEvent<HTMLFormElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
          e.preventDefault();
-         submit();
+         if (!disabled) {
+            submit();
+         }
       }
+   };
+
+   const handleClick = (e: MouseEvent<HTMLFormElement>) => {
+      if (e.target instanceof Element && e.target.closest('button')) return;
+      setFocus('prompt');
    };
 
    return (
       <form
          onSubmit={submit}
          onKeyDown={handleKeyDown}
-         className="sticky bottom-0 flex flex-col gap-2 items-end border-2 rounded-3xl p-4 bg-background"
+         onClick={handleClick}
+         className="sticky bottom-0 flex flex-col gap-2 items-end border-2 rounded-3xl p-4 bg-background cursor-text"
       >
          <textarea
             {...register('prompt', {
@@ -45,9 +56,8 @@ const ChatInput = ({ onSubmit }: Props) => {
             maxLength={1000}
          />
          <Button
-            type="submit"
-            disabled={!formState.isValid}
-            className="rounded-full h-9 w-9"
+            disabled={disabled || !formState.isValid}
+            className="rounded-full h-9 w-9 cursor-pointer disabled:pointer-events-auto disabled:cursor-pointer"
          >
             <FaArrowUp />
          </Button>
