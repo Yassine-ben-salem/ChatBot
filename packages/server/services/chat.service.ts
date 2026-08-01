@@ -38,15 +38,19 @@ function normalizeContent(
 
 export const chatService = {
    async sendMessage(
+      sessionId: string,
       conversationId: string,
       prompt: string
    ): Promise<ChatResponse> {
-      conversationRepository.addMessage(conversationId, {
+      conversationRepository.addMessage(sessionId, conversationId, {
          role: 'user',
          content: prompt,
       });
 
-      const history = conversationRepository.getMessages(conversationId);
+      const history = conversationRepository.getMessages(
+         sessionId,
+         conversationId
+      );
 
       const response = await client.chat.completions.create({
          model: 'openai/gpt-5.4-mini',
@@ -59,7 +63,7 @@ export const chatService = {
          response.choices?.[0]?.message?.content
       );
 
-      conversationRepository.addMessage(conversationId, {
+      conversationRepository.addMessage(sessionId, conversationId, {
          role: 'assistant',
          content: assistantMessage,
       });
@@ -71,15 +75,19 @@ export const chatService = {
    },
 
    async *streamMessage(
+      sessionId: string,
       conversationId: string,
       prompt: string
    ): AsyncGenerator<string> {
-      conversationRepository.addMessage(conversationId, {
+      conversationRepository.addMessage(sessionId, conversationId, {
          role: 'user',
          content: prompt,
       });
 
-      const history = conversationRepository.getMessages(conversationId);
+      const history = conversationRepository.getMessages(
+         sessionId,
+         conversationId
+      );
 
       const stream = await client.chat.completions.create({
          model: 'openai/gpt-5.4-mini',
@@ -98,7 +106,7 @@ export const chatService = {
          }
       }
 
-      conversationRepository.addMessage(conversationId, {
+      conversationRepository.addMessage(sessionId, conversationId, {
          role: 'assistant',
          content: full || 'No content',
       });

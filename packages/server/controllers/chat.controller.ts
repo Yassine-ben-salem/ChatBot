@@ -23,6 +23,7 @@ export const chatController = {
       try {
          const { prompt, conversationId } = parseResult.data;
          const chatResponse = await chatService.sendMessage(
+            req.sessionId,
             conversationId,
             prompt
          );
@@ -49,6 +50,7 @@ export const chatController = {
       try {
          const { prompt, conversationId } = parseResult.data;
          for await (const chunk of chatService.streamMessage(
+            req.sessionId,
             conversationId,
             prompt
          )) {

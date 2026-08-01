@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import axios from 'axios';
 import TypingIndicator from './TypingIndicator';
 import type { Message } from './ChatMessages';
 import ChatMessages from './ChatMessages';
@@ -58,30 +59,12 @@ const ChatBot = () => {
       };
 
       try {
-         const response = await fetch('api/chat/stream', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-               prompt,
-               conversationId: conversationId.current,
-            }),
-         });
-
-         if (!response.ok || !response.body) {
-            throw new Error('Failed to start the stream.');
-         }
-
-         const reader = response.body.getReader();
-         const decoder = new TextDecoder();
          let buffer = '';
+         let lastLength = 0;
+         let revealStarted = false;
 
-         startRevealing();
-
-         while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
+         const parseChunk = (newText: string) => {
+            buffer += newText;
             const events = buffer.split('\n\n');
             buffer = events.pop() ?? '';
 
@@ -96,12 +79,33 @@ const ChatBot = () => {
                   const { text } = JSON.parse(data);
                   if (text) {
                      full += text;
+                     if (!revealStarted) {
+                        revealStarted = true;
+                        startRevealing();
+                     }
                   }
                } catch {
                   // ignore malformed events
                }
             }
-         }
+         };
+
+         await axios.post(
+            '/api/chat/stream',
+            { prompt, conversationId: conversationId.current },
+            {
+               withCredentials: true,
+               responseType: 'text',
+               onDownloadProgress: (progressEvent) => {
+                  const target = progressEvent.event?.target as
+                     XMLHttpRequest | undefined;
+                  const responseText: string = target?.responseText ?? '';
+                  const newText = responseText.slice(lastLength);
+                  lastLength = responseText.length;
+                  if (newText) parseChunk(newText);
+               },
+            }
+         );
 
          streamDone = true;
          if (!full) {

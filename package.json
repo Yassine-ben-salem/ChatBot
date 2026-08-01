@@ -5,6 +5,8 @@
    "private": true,
    "scripts": {
       "dev": "bun run index.ts",
+      "build": "bun run --cwd packages/client build",
+      "start": "NODE_ENV=production bun run --cwd packages/server start",
       "test": "bun run --cwd packages/server test",
       "typecheck": "tsc -p packages/server/tsconfig.json --noEmit && tsc -b packages/client",
       "prepare": "husky"
