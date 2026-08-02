@@ -24,7 +24,6 @@ app.use(sessionMiddleware);
 app.use(router);
 
 if (isProduction) {
-   // Serve the built client so a single server handles both API and static assets.
    const clientDist = path.resolve(__dirname, '../client/dist');
    app.use(express.static(clientDist));
    app.get('*', (req, res, next) => {

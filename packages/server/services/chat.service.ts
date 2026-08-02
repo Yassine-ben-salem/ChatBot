@@ -1,5 +1,8 @@
+import fs from 'fs';
+import path from 'path';
 import OpenAI from 'openai';
 import { conversationRepository } from '../repositories/conversation.repository';
+import template from '../prompts/chatBot.txt';
 
 const apiKey = process.env.OPENAI_API_KEY;
 
@@ -13,6 +16,12 @@ const client = new OpenAI({
    apiKey,
    baseURL: 'https://openrouter.ai/api/v1',
 });
+
+const parkInfo = fs.readFileSync(
+   path.join(__dirname, '..', 'prompts', 'WonderWorld.md'),
+   'utf-8'
+);
+const instructions = template.replace('{{parkInfo}}', parkInfo);
 
 type ChatResponse = {
    id: string;
@@ -54,7 +63,7 @@ export const chatService = {
 
       const response = await client.chat.completions.create({
          model: 'openai/gpt-5.4-mini',
-         messages: history,
+         messages: [{ role: 'system', content: instructions }, ...history],
          temperature: 0.2,
          max_tokens: 2048,
       });
@@ -91,7 +100,7 @@ export const chatService = {
 
       const stream = await client.chat.completions.create({
          model: 'openai/gpt-5.4-mini',
-         messages: history,
+         messages: [{ role: 'system', content: instructions }, ...history],
          temperature: 0.2,
          max_tokens: 2048,
          stream: true,
