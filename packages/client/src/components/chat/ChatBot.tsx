@@ -4,6 +4,14 @@ import TypingIndicator from './TypingIndicator';
 import type { Message } from './ChatMessages';
 import ChatMessages from './ChatMessages';
 import ChatInput, { type ChatFormData } from './ChatInput';
+import popSound from '../../assets/sounds/pop.mp3';
+import notificationSound from '../../assets/sounds/notification.mp3';
+
+const popAudio = new Audio(popSound);
+popAudio.volume = 0.2;
+
+const notificationAudio = new Audio(notificationSound);
+notificationAudio.volume = 0.2;
 
 const REVEAL_CHARS = 2;
 const REVEAL_INTERVAL_MS = 20;
@@ -32,6 +40,7 @@ const ChatBot = () => {
       ]);
       setIsBotTyping(true);
       setError('');
+      popAudio.play();
 
       let full = '';
       let displayed = 0;
@@ -111,6 +120,8 @@ const ChatBot = () => {
          if (!full) {
             stopRevealing();
             updateBotMessage(botMessageId, 'No content');
+         } else {
+            notificationAudio.play();
          }
       } catch (error) {
          console.error(error);
