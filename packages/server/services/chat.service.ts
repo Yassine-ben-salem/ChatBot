@@ -3,17 +3,10 @@ import path from 'path';
 import OpenAI from 'openai';
 import { conversationRepository } from '../repositories/conversation.repository';
 import template from '../prompts/chatBot.txt';
-
-const apiKey = process.env.OPENAI_API_KEY;
-
-if (!apiKey) {
-   throw new Error(
-      'OPENAI_API_KEY is not set. Copy packages/server/.env.example to packages/server/.env and set a valid key.'
-   );
-}
+import { llmClient } from '../llm/client';
 
 const client = new OpenAI({
-   apiKey,
+   apiKey: process.env.OPENAI_API_KEY,
    baseURL: 'https://openrouter.ai/api/v1',
 });
 
@@ -61,16 +54,16 @@ export const chatService = {
          conversationId
       );
 
-      const response = await client.chat.completions.create({
+      const response = await llmClient.generateText({
          model: 'openai/gpt-5.4-mini',
-         messages: [{ role: 'system', content: instructions }, ...history],
+         prompt: [{ role: 'system', content: instructions }, ...history]
+            .map((message) => `${message.role}: ${message.content}`)
+            .join('\n'),
          temperature: 0.2,
-         max_tokens: 2048,
+         maxTokens: 2048,
       });
 
-      const assistantMessage = normalizeContent(
-         response.choices?.[0]?.message?.content
-      );
+      const assistantMessage = normalizeContent(response);
 
       conversationRepository.addMessage(sessionId, conversationId, {
          role: 'assistant',
@@ -78,7 +71,7 @@ export const chatService = {
       });
 
       return {
-         id: response.id,
+         id: conversationId,
          message: assistantMessage,
       };
    },
@@ -98,17 +91,19 @@ export const chatService = {
          conversationId
       );
 
-      const stream = await client.chat.completions.create({
+      const stream = await llmClient.generateText({
          model: 'openai/gpt-5.4-mini',
-         messages: [{ role: 'system', content: instructions }, ...history],
+         prompt: [{ role: 'system', content: instructions }, ...history]
+            .map((message) => `${message.role}: ${message.content}`)
+            .join('\n'),
          temperature: 0.2,
-         max_tokens: 2048,
+         maxTokens: 2048,
          stream: true,
       });
 
       let full = '';
       for await (const chunk of stream) {
-         const text = chunk.choices?.[0]?.delta?.content ?? '';
+         const text = chunk;
          if (text) {
             full += text;
             yield text;
